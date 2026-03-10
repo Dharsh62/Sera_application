@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "788734636878",
+    "project_id": "simplechatapp-b3fc0",
+    "storage_bucket": "simplechatapp-b3fc0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:788734636878:android:0846c7679134cabc94641f",
+        "android_client_info": {
+          "package_name": "com.example.kotlinbasicsapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEh-7U9OX25AOzt-n2NJXF6K31pDxOE_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
