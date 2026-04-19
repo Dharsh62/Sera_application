@@ -19,14 +19,12 @@ fun CreateProfileScreen(
 ) {
 
     val context = LocalContext.current
-    val database = FirebaseDatabase.getInstance()
-    val usersRef = database.getReference("users")
+    val userManager = LocalUserManager(context)
 
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    val db = FirebaseDatabase.getInstance().reference
+
+    var name by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("user") }
-
     var interests by remember { mutableStateOf("") }
     var organization by remember { mutableStateOf("") }
 
@@ -36,35 +34,26 @@ fun CreateProfileScreen(
         navController = navController,
         title = "Create Profile",
         showBack = true,
-        showBottomBar = false
-    ) { padding ->
+        showBottomBar = false,
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        content = { padding ->
 
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it.trim() },
-                label = { Text("Username") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(20.dp)
+            ) {
+                // your profile creation UI
+            }
+
+        }
+    ) {
 
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -109,56 +98,38 @@ fun CreateProfileScreen(
             Button(
                 onClick = {
 
-                    if (username.isBlank() || password.isBlank()) {
-                        Toast.makeText(context, "Fill all fields", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-
-                    if (password != confirmPassword) {
-                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                    if (name.isBlank()) {
+                        Toast.makeText(context, "Enter name", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
 
                     loading = true
 
-                    // Check username uniqueness
-                    usersRef.child(username).get()
-                        .addOnSuccessListener { snapshot ->
+                    val user = User(
+                        name = name,
+                        phone = phone,
+                        interests = interests,
+                        organization = organization,
+                        role = role,
+                        approved = role == "user"
+                    )
 
-                            if (snapshot.exists()) {
-                                loading = false
-                                Toast.makeText(
-                                    context,
-                                    "Username already taken",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                    // 🔥 STORE USING PHONE AS KEY
+                    db.child("users").child(phone)
+                        .setValue(user)
+                        .addOnSuccessListener {
+
+                            loading = false
+                            userManager.setLoggedIn(phone)
+
+                            if (role == "organizer") {
+                                navController.navigate("approval") {
+                                    popUpTo("create_profile/$phone") { inclusive = true }
+                                }
                             } else {
-
-                                val userMap = mapOf(
-                                    "phone" to phone,
-                                    "password" to password,
-                                    "role" to role,
-                                    "interests" to interests,
-                                    "organization" to organization,
-                                    "approved" to if (role == "organizer") false else true
-                                )
-
-                                usersRef.child(username)
-                                    .setValue(userMap)
-                                    .addOnSuccessListener {
-
-                                        loading = false
-
-                                        if (role == "organizer") {
-                                            navController.navigate("approval") {
-                                                popUpTo("create_profile/$phone") { inclusive = true }
-                                            }
-                                        } else {
-                                            navController.navigate("chat_list") {
-                                                popUpTo("create_profile/$phone") { inclusive = true }
-                                            }
-                                        }
-                                    }
+                                navController.navigate("chat_list") {
+                                    popUpTo("create_profile/$phone") { inclusive = true }
+                                }
                             }
                         }
                 },
@@ -172,4 +143,3 @@ fun CreateProfileScreen(
             }
         }
     }
-}

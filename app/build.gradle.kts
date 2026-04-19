@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.services)
-
 }
 
 android {
@@ -54,6 +53,7 @@ android {
 dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:32.7.3"))
+    implementation("com.google.firebase:firebase-auth-ktx")
 
     // Firebase Realtime Database
     implementation("com.google.firebase:firebase-database-ktx")

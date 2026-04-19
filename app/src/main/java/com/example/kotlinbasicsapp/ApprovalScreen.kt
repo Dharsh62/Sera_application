@@ -16,19 +16,24 @@ fun ApprovalScreen(navController: NavController) {
 
     AppScaffold(
         navController = navController,
-        title = "Approval Pending"
-    ) { padding: PaddingValues ->
+        title = "Approval",
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF0A192F))
-                .padding(padding),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Your organization is under review.\nPlease wait for approval."
-            )
+        content = { padding ->
+
+            Column(modifier = Modifier.padding(padding)) {
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF0A192F))
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Your organization is under review.\nPlease wait for approval."
+                    )
+                }
+            }
         }
-    }
+    )
 }

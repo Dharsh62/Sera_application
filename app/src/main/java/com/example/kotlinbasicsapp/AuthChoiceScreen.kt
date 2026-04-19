@@ -40,7 +40,7 @@ fun AuthChoiceScreen(navController: NavController) {
 
             OutlinedButton(
                 onClick = {
-                    navController.navigate("login_password")
+                    navController.navigate("phone_auth")
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

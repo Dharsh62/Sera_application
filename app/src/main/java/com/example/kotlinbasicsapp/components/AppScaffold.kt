@@ -1,9 +1,7 @@
 package com.example.kotlinbasicsapp.components
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
@@ -12,11 +10,12 @@ import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
-import androidx.compose.material.icons.filled.PersonAdd
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScaffold(
@@ -24,13 +23,15 @@ fun AppScaffold(
     title: String,
     showBack: Boolean = false,
     showBottomBar: Boolean = true,
-    content: @Composable (PaddingValues) -> Unit
+    content: @Composable (PaddingValues) -> Unit,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(title) },
+
                 navigationIcon = {
                     if (showBack) {
                         IconButton(onClick = {
@@ -40,7 +41,13 @@ fun AppScaffold(
                         }
                     }
                 },
+
+                // 🔥 FIX: Combine default + external actions
                 actions = {
+                    // 👉 Custom actions from screen (like Requests button)
+                    actions()
+
+                    // 👉 Default icons
                     IconButton(onClick = {
                         navController.navigate("profile")
                     }) {
@@ -51,6 +58,7 @@ fun AppScaffold(
                         Icon(Icons.Default.MoreVert, contentDescription = null)
                     }
                 },
+
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF0F2747),
                     titleContentColor = Color.White,

@@ -10,112 +10,117 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.kotlinbasicsapp.components.AppScaffold
+import com.google.firebase.database.FirebaseDatabase
 
 @Composable
 fun ProfileScreen(navController: NavController) {
 
     val context = LocalContext.current
-    val loggedPhone = LocalUserManager.getLoggedInPhone(context)
+    val userManager = LocalUserManager(context)
+    val phone = userManager.getLoggedInPhone() ?: return
 
-    val prefs = context.getSharedPreferences("app_users", android.content.Context.MODE_PRIVATE)
+    val db = FirebaseDatabase.getInstance().reference
 
-    var username by remember {
-        mutableStateOf(
-            prefs.getString("username_$loggedPhone", "") ?: ""
-        )
-    }
+    var user by remember { mutableStateOf<User?>(null) }
+    var loading by remember { mutableStateOf(true) }
 
-    var role by remember {
-        mutableStateOf(
-            prefs.getString("role_$loggedPhone", "User") ?: "User"
-        )
-    }
+    // Editable fields
+    var name by remember { mutableStateOf("") }
+    var extraInfo by remember { mutableStateOf("") }
 
-    var extraInfo by remember {
-        mutableStateOf(
-            prefs.getString("extra_$loggedPhone", "") ?: ""
-        )
+    // 🔥 Fetch from Firebase
+    LaunchedEffect(Unit) {
+        db.child("users").child(phone).get()
+            .addOnSuccessListener { snapshot ->
+                val fetchedUser = snapshot.getValue(User::class.java)
+                user = fetchedUser
+
+                fetchedUser?.let {
+                    name = it.name
+                    extraInfo = if (it.role == "organizer") it.organization else it.interests
+                }
+
+                loading = false
+            }
     }
 
     AppScaffold(
         navController = navController,
         title = "Profile",
         showBack = true,
-        showBottomBar = false
-    ) { innerPadding ->
+        showBottomBar = false,
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+        content = { padding ->
 
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = null,
-                modifier = Modifier.size(100.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            TextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Role: $role")
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextField(
-                value = extraInfo,
-                onValueChange = { extraInfo = it },
-                label = {
-                    if (role == "Organizer")
-                        Text("Organization Details")
-                    else
-                        Text("Interests")
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    prefs.edit()
-                        .putString("username_$loggedPhone", username)
-                        .putString("extra_$loggedPhone", extraInfo)
-                        .apply()
-
-                    navController.popBackStack()
-                },
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Save Changes")
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    LocalUserManager.logout(context)
-
-                    navController.navigate("auth_choice") {
-                        popUpTo("chat_list") { inclusive = true }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(100.dp)
                 )
-            ) {
-                Text("Logout")
+
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text("Role: ${user?.role}")
+
+                TextField(
+                    value = extraInfo,
+                    onValueChange = { extraInfo = it },
+                    label = {
+                        if (user?.role == "organizer")
+                            Text("Organization")
+                        else
+                            Text("Interests")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Button(
+                    onClick = {
+                        val updatedUser = user?.copy(
+                            name = name,
+                            interests = if (user?.role == "user") extraInfo else user?.interests ?: "",
+                            organization = if (user?.role == "organizer") extraInfo else user?.organization ?: ""
+                        )
+
+                        if (updatedUser != null) {
+                            db.child("users").child(phone).setValue(updatedUser)
+                        }
+
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Save Changes")
+                }
+
+                Button(
+                    onClick = {
+                        userManager.logout()
+                        navController.navigate("auth_choice") {
+                            popUpTo("chat_list") { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Logout")
+                }
             }
+
         }
-    }
-}
+    )}

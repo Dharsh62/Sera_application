@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
                     startDestination = "splash"
                 ) {
 
+
                     // ---------------- Splash ----------------
                     composable("splash") {
                         SplashScreen(navController)
@@ -33,14 +34,13 @@ class MainActivity : ComponentActivity() {
                     composable("auth_choice") {
                         AuthChoiceScreen(navController)
                     }
-
+                    composable("requests") {
+                        RequestsScreen(navController)
+                    }
                     composable("phone_auth") {
                         PhoneAuthScreen(navController)
                     }
 
-                    composable("login_password") {
-                        LoginWithPasswordScreen(navController)
-                    }
 
                     composable(
                         route = "otp/{phone}",
@@ -75,7 +75,19 @@ class MainActivity : ComponentActivity() {
 
                     // ---------------- Main App ----------------
                     composable("chat_list") {
-                        ChatListScreen(navController)
+
+                        val sampleChats = listOf(
+                            ChatItem("1", "Dharsh", "Hey!", System.currentTimeMillis()),
+                            ChatItem("2", "Ajay", "Meeting tomorrow", System.currentTimeMillis()),
+                            ChatItem("3", "Admin", "Approved", System.currentTimeMillis())
+                        )
+
+                        ChatListScreen(
+                            chatList = sampleChats,
+                            onChatClick = { userId ->
+                                navController.navigate("chat/$userId")
+                            }
+                        )
                     }
 
                     composable("connect") {
@@ -86,20 +98,20 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(
-                        route = "chat_screen/{username}",
+                        route = "chat/{userId}",
                         arguments = listOf(
-                            navArgument("username") {
+                            navArgument("userId") {
                                 type = NavType.StringType
                             }
                         )
                     ) { backStackEntry ->
 
-                        val username =
-                            backStackEntry.arguments?.getString("username") ?: ""
+                        val userId =
+                            backStackEntry.arguments?.getString("userId") ?: ""
 
                         ChatScreen(
                             navController = navController,
-                            chatUser = username
+                            chatUser = userId
                         )
                     }
                 }

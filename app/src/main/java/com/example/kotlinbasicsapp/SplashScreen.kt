@@ -15,6 +15,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.delay
+import com.google.firebase.auth.FirebaseAuth
+import android.util.Log
 
 @Composable
 fun SplashScreen(navController: NavController) {
@@ -44,19 +46,21 @@ fun SplashScreen(navController: NavController) {
 
         delay(5000)
 
-        val loggedInPhone = LocalUserManager.getLoggedInPhone(context)
+        val userManager = LocalUserManager(context)
+        val loggedInPhone = userManager.getLoggedInPhone()
 
-        if (loggedInPhone == null) {
-            navController.navigate("auth_choice") {
+        Log.d("SPLASH", "Phone: $loggedInPhone")
+
+        if (!loggedInPhone.isNullOrEmpty()) {
+            navController.navigate("chat_list") {
                 popUpTo("splash") { inclusive = true }
             }
         } else {
-            navController.navigate("chat_list") {
+            navController.navigate("phone_auth") {
                 popUpTo("splash") { inclusive = true }
             }
         }
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
